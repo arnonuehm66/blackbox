@@ -15,6 +15,7 @@
  ** 27.09.2020  JE    Adjusted usage text apropiately.
  ** 20.04.2021  JE    Now use 'c_dynamic_arrays_macros.h'.
  ** 24.09.2023  JE    Refactored the git from single archive file.
+ ** 24.09.2023  JE    Now uses latest libs and deleted unused.
  *******************************************************************************/
 
 
@@ -33,7 +34,7 @@
 //******************************************************************************
 //* defines & macros
 
-#define ME_VERSION "0.6.2"
+#define ME_VERSION "0.6.3"
 cstr g_csMename;
 
 #define ERR_NOERR 0x00
