@@ -1,20 +1,22 @@
 /*******************************************************************************
- ** Name: c_dynamic_array_macros.h
+ ** Name: c_dynamic_arrays_macros.h
  ** Purpose:  Provides dynamic arrays as macros.
  ** Author: (JE) Jens Elstner
- ** Version: v0.1.1
+ ** Version: v0.1.3
  *******************************************************************************
  ** Date        User  Log
  **-----------------------------------------------------------------------------
  ** 11.04.2021  JE    Created lib.
+ ** 19.04.2021  JE    Renamed 'ptArray' to 'tArray'.
+ ** 17.07.2023  JE    Deleted if (ptr != NULL) in front of each free(ptr).
  *******************************************************************************/
 
 
 //******************************************************************************
 //* header
 
-#ifndef C_DYNAMIC_ARRAYS_H
-#define C_DYNAMIC_ARRAYS_H
+#ifndef C_DYNAMIC_ARRAYS_MACROS_H
+#define C_DYNAMIC_ARRAYS_MACROS_H
 
 
 //******************************************************************************
@@ -32,7 +34,7 @@
 //* How To use:
 //*-------------
 //* Do not use spaces in type like 'unsigned int'!
-//* Use either a 'typedef ui unsigned int;' and then use 'ui' as type,
+//* Use either a 'typedef unsigned int ui;' and then use 'ui' as type,
 //* or use one of the definitions from 'stdint.h' like 'uint32_t'.
 //*
 //* Create the struct like this in your main.c file, once per type.
@@ -40,14 +42,14 @@
 //*   s_array(uint32_t);
 //*   s_array(float);
 //*
-//* After that, you can use 't_array(uint32_t)' for varaible declarations and
+//* After that, you can use 't_array(uint32_t)' for variable declarations and
 //* as arguments in functions like:
 //*
 //*   int myFunction(t_array(uint32_t) myDa) { ... }
 //*
 //*   t_array(uint32_t) myDa;
 //*
-//* Then your're up and runnug with the usage of all macros creating, adding
+//* Then your're up and running with the usage of all macros creating, adding
 //* and freeing the dynamic arrays;
 //*
 //*   daInit(uint32_t, myDa);
@@ -56,7 +58,7 @@
 //*   daAdd(uint32_t, myDa, 10);
 //*   daAdd(uint32_t, myDa, 100);
 //*
-//*   uint32_t Variable = myDa.pVal[2];
+//*   uint32_t var = myDa.pVal[2];
 //*
 //*   int rv = myFunction(myDa);
 //*
@@ -72,16 +74,23 @@
 //*
 //*   t_array(cstr) myDa;
 //*
-//*   daInit(myType, myDa);
+//*   daInit(cstr, myDa);
 //*
-//*     daAdd(cstr, my_dacs, csNew("Eins"));
-//*     daAdd(cstr, my_dacs, csNew("Zwei"));
-//*     daAdd(cstr, my_dacs, csNew("Drei"));
+//*   daAdd(cstr, myDa, csNew("Eins"));
+//*   daAdd(cstr, myDa, csNew("Zwei"));
+//*   daAdd(cstr, myDa, csNew("Drei"));
 //*
-//* Last argument is the name of the internal pointer (one level beyond)
-//* to be freed prior dynamic array pointer.
+//* Last argument for daFreeEx() is the name of the internal pointer (one
+//* level beyond) to be freed prior dynamic array pointer.
 //*
 //*   daFreeEx(myDa, cStr);
+//*
+//* If a pointer is needed use it like this:
+//*
+//*   int myFunction(t_array(uint32_t)* myDa) {
+//*     daAdd(uint32_t, (*myDa), 1);
+//*     return 1;
+//*   }
 //*
 //******************************************************************************
 
@@ -103,62 +112,61 @@
 //* int
 
 /*******************************************************************************
- * Name:  daiInit
+ * Name:  daInit
  * Purpose: Initialze dynamic array of type.
  *******************************************************************************/
-#define daInit(type, ptArray) { \
-  ptArray.sCount    = 0; \
-  ptArray.sCapacity = C_DYNAMIC_ARRAYS_INITIAL_CAPACITY; \
-  ptArray.pVal      = (type*) malloc(sizeof(type) * ptArray.sCapacity); \
+#define daInit(type, tArray) { \
+  tArray.sCount    = 0; \
+  tArray.sCapacity = C_DYNAMIC_ARRAYS_INITIAL_CAPACITY; \
+  tArray.pVal      = (type*) malloc(sizeof(type) * tArray.sCapacity); \
 }
 
 /*******************************************************************************
  * Name:  daAdd
  * Purpose: Adds a value to a dynamic array.
  *******************************************************************************/
-#define daAdd(type, ptArray, value) { \
-  if (ptArray.sCount + 1 > ptArray.sCapacity) { \
-    ptArray.sCapacity *= 2; \
-    ptArray.pVal       = (type*) realloc(ptArray.pVal, sizeof(type) * ptArray.sCapacity); \
+#define daAdd(type, tArray, value) { \
+  if (tArray.sCount + 1 > tArray.sCapacity) { \
+    tArray.sCapacity *= 2; \
+    tArray.pVal       = (type*) realloc(tArray.pVal, sizeof(type) * tArray.sCapacity); \
   } \
-  ptArray.pVal[ptArray.sCount++] = value; \
+  tArray.pVal[tArray.sCount++] = value; \
 }
 
 /*******************************************************************************
  * Name:  daFree
  * Purpose: Free memory of dynamic array.
  *******************************************************************************/
-#define daFree(ptArray) { \
-  if (ptArray.pVal != NULL) free(ptArray.pVal); \
+#define daFree(tArray) { \
+  free(tArray.pVal); \
 }
 
 /*******************************************************************************
  * Name:  daClear
  * Purpose: Reset dynamic array.
  *******************************************************************************/
-#define daClear(type, ptArray) { \
-  daFree(ptArray); \
-  daInit(type, ptArray); \
+#define daClear(type, tArray) { \
+  daFree(tArray); \
+  daInit(type, tArray); \
 }
 
 /*******************************************************************************
  * Name:  daFreeEx
  * Purpose: Free memory of dynamic array.
  *******************************************************************************/
-#define daFreeEx(ptArray, pointer) { \
-  for (int i = 0; i < ptArray.sCount; ++i) \
-    if (ptArray.pVal[i].pointer != NULL) free(ptArray.pVal[i].pointer); \
-  if (ptArray.pVal != NULL) free(ptArray.pVal); \
+#define daFreeEx(tArray, pointer) { \
+  for (int i = 0; i < tArray.sCount; ++i) free(tArray.pVal[i].pointer); \
+  free(tArray.pVal); \
 }
 
 /*******************************************************************************
  * Name:  daClearEx
  * Purpose: Reset dynamic array.
  *******************************************************************************/
-#define daClearEx(type, ptArray, pointer) { \
-  daFreeEx(ptArray, pointer); \
-  daInit(type, ptArray); \
+#define daClearEx(type, tArray, pointer) { \
+  daFreeEx(tArray, pointer); \
+  daInit(type, tArray); \
 }
 
 
-#endif // C_DYNAMIC_ARRAYS_H
+#endif // C_DYNAMIC_ARRAYS_MACROS_H
