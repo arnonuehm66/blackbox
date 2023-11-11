@@ -371,14 +371,14 @@ void cellFromXY(int* piCell, int iX, int iY) {
 
 /*******************************************************************************
  * Name:  createBoard
- * Purpose: Creates the board wuth border and atoms.
+ * Purpose: Creates the board with border and atoms.
  *******************************************************************************/
 void createBoard() {
   int iCell = 0;
   int iX    = 0;
   int iY    = 0;
 
-  // Internal 4x4 grid looks internally like this:
+  // Internal 4x4 grid looks like this:
   //     16151413
   //   1 1 1 1 1 1
   // 1 1 0 0 0 0 1 12
